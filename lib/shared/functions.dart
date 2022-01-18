@@ -2,9 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:get/get.dart';
+ import 'package:google_sign_in/google_sign_in.dart';
+
 
 void navigateToPage(BuildContext context, Widget screen) {
   Navigator.of(context)
@@ -12,7 +11,10 @@ void navigateToPage(BuildContext context, Widget screen) {
 }
 
 void navigateToPageWithoutBack(BuildContext context, Widget screen) {
-  Get.offAll(screen);
+  Navigator.pushReplacement(
+      context, MaterialPageRoute(
+          builder: (BuildContext context) => screen));
+
 }
 
 BuildContext? context;
@@ -54,9 +56,8 @@ String getFormattedDate(Timestamp timeStamp) {
     showTime = "$hours h";
   else if (hours > 24 && days < 7)
     showTime = "$days days";
-  else if (days > 31)
-    showTime = "${(days / 7).floor()} weeks";
   else
-    showTime = myDateTime.toString();
+    showTime = "${(days / 7).floor()} weeks";
+
   return showTime;
 }

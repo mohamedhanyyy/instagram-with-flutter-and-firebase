@@ -34,8 +34,9 @@ class _UpdateUserDataScreenState extends State<UpdateUserDataScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        elevation: 0,
+        elevation: 4,
         centerTitle: true,
+        backgroundColor: Colors.white,
         title: Text('Update User Profile', style: bigTextStyle()),
       ),
       body: Padding(
@@ -64,40 +65,115 @@ class _UpdateUserDataScreenState extends State<UpdateUserDataScreen> {
                                 radius: 70,
                               ),
                               GestureDetector(
-                                child: Icon(
-                                  Icons.add,
-                                  size: 30,
-                                  color: Colors.black,
+                                child: CircleAvatar(
+                                  backgroundColor: Colors.grey[200],
+                                  child: Icon(
+                                    Icons.camera_alt_rounded,
+                                    size: 25,
+                                    color: Colors.black,
+                                  ),
                                 ),
                                 onTap: () async {
-                                  updatedPhoto = (await picker.pickImage(
-                                      source: ImageSource.camera));
-                                  setState(() {
-                                    photoIsUploading = true;
-                                  });
+                                  showModalBottomSheet<void>(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return Container(
+                                          height: height * 0.3,
+                                          child: Column(children: [
 
-                                  String imageName =
-                                      basename(updatedPhoto!.path);
-                                  var refStorage = FirebaseStorage.instance
-                                      .ref('posts')
-                                      .child(imageName);
+                                            Align(
+                                              child: IconButton(
+                                                icon: Icon(Icons.close),
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                },
+                                              ),
+                                              alignment: Alignment.topRight,
+                                            ),
+                                            ElevatedButton(onPressed: ()async{
 
-                                  await refStorage
-                                      .putFile(File(updatedPhoto!.path));
+                                              updatedPhoto = await picker.pickImage(
+                                                  source: ImageSource.camera);
+                                             if(updatedPhoto!=null)
+                                               {
+                                                 setState(() {
+                                                   photoIsUploading = true;
+                                                 });
+                                                 String imageName =
+                                                 basename(updatedPhoto!.path);
+                                                 var refStorage = FirebaseStorage.instance
+                                                     .ref('posts')
+                                                     .child(imageName);
 
-                                  imageUrl = await refStorage.getDownloadURL();
-                                  await FirebaseFirestore.instance
-                                      .collection("users")
-                                      .doc(FirebaseAuth
-                                          .instance.currentUser!.uid)
-                                      .update({
-                                    'image': imageUrl,
-                                  }).then((value) {
-                                    print('update done');
-                                    setState(() {
-                                      photoIsUploading = false;
-                                    });
-                                  });
+                                                 await refStorage
+                                                     .putFile(File(updatedPhoto!.path));
+                                                 imageUrl = await refStorage.getDownloadURL();
+                                                 await FirebaseFirestore.instance
+                                                     .collection("users")
+                                                     .doc(FirebaseAuth
+                                                     .instance.currentUser!.uid)
+                                                     .update({
+                                                   'image': imageUrl,
+                                                 }).then((value) {
+                                                   print('update done');
+                                                   setState(() {
+                                                     photoIsUploading = false;
+                                                   });
+                                                 });
+                                               }
+                                             else
+                                               Navigator.pop(context);
+
+
+                                            }, child: Text("Upload from camera")),
+
+
+                                            ElevatedButton(onPressed: ()async{
+                                              Navigator.pop(context);
+                                              updatedPhoto = await picker.pickImage(
+                                                  source: ImageSource.gallery);
+                                              if(updatedPhoto!=null)
+                                              {
+                                                setState(() {
+                                                  photoIsUploading = true;
+                                                });
+                                                String imageName =
+                                                basename(updatedPhoto!.path);
+                                                var refStorage = FirebaseStorage.instance
+                                                    .ref('posts')
+                                                    .child(imageName);
+
+                                                await refStorage
+                                                    .putFile(File(updatedPhoto!.path));
+
+                                                imageUrl = await refStorage.getDownloadURL();
+                                                await FirebaseFirestore.instance
+                                                    .collection("users")
+                                                    .doc(FirebaseAuth
+                                                    .instance.currentUser!.uid)
+                                                    .update({
+                                                  'image': imageUrl,
+                                                }).then((value) {
+                                                  print('update done');
+
+
+                                                  setState(() {
+                                                    photoIsUploading = false;
+                                                  });
+                                                })  ;
+                                              }
+                                              else
+                                                Navigator.pop(context);
+
+
+                                            }, child: Text("Upload from gallery")),
+
+                                          ],),
+
+                                        );
+                                      });
+
+
                                 },
                               ),
                             ],
@@ -167,21 +243,34 @@ class _UpdateUserDataScreenState extends State<UpdateUserDataScreen> {
                           ),
                         ),
                         SizedBox(height: height * 0.05),
-                        ElevatedButton(
-                            onPressed: () async {
-                              pref.clear();
-                              await FirebaseAuth.instance
-                                  .signOut()
-                                  .then((value) {
-                                print('sign out auth done');
-                              });
-                              await googleSignIn.signOut().then((value) {
-                                print('sign out from google done');
-
-                                navigateToPage(context, LoginScreen());
-                              });
-                            },
-                            child: Text("Log Out"))
+                        Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: width * 0.2),
+                          child: ElevatedButton(
+                              onPressed: () async {
+                                pref.clear();
+                                await FirebaseAuth.instance
+                                    .signOut()
+                                    .then((value) {
+                                  print('sign out auth done');
+                                });
+                                await googleSignIn.signOut().then((value) {
+                                  print('sign out from google done');
+                                });
+                                navigateToPageWithoutBack(
+                                    context, LoginScreen());
+                              },
+                              child: Row(
+                                children: [
+                                  Text("Log Out"),
+                                  const SizedBox(
+                                    width: 20,
+                                  ),
+                                  Icon(Icons.logout)
+                                ],
+                                mainAxisAlignment: MainAxisAlignment.center,
+                              )),
+                        )
                       ],
                     );
                   }
